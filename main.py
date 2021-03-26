@@ -32,16 +32,15 @@ def keyword_match(mdc_message,keyword_list):
             for k in keyword_list:
                 if "###" in k :
                     split_array = k.split("###")
-                    print(split_array)
                     for spr in split_array :
                         perc_match = fuzz.partial_ratio(spr.lower(), list_key[0])
-                        if perc_match > 70:
-                            ret_keyword.append(spr)
+                        if perc_match > 75:
+                            ret_keyword.extend(split_array)
                     break
                 else : 
                     perc_match = fuzz.partial_ratio(k.lower(), list_key[0])
-                    print(perc_match, ' ', k.lower(), ' ', list_key[0])
-                    if perc_match > 70:
+                    #print(perc_match, ' ', k.lower(), ' ', list_key[0])
+                    if perc_match > 75:
                         ret_keyword.append(k)
                         break
         if ret_keyword : 
@@ -50,20 +49,29 @@ def keyword_match(mdc_message,keyword_list):
     return ret_keyword
            
 
-def keyword_match_descrepancy(pm_message,my_keyword):
+def keyword_match_pm_messages(pm_message,my_keyword):
     for key in pm_message:
         list_key = list(key) 
         perc_match = 0
-        status=0
+        count=0
+        avg_perc_match = 0
         if not bool(re.match('[^\w]', list_key[0])):
             for k in my_keyword :
                 perc_match = fuzz.partial_ratio(k.lower(), list_key[0])
-            if perc_match > 70 : 
-                status = 3
-                break
-            else : 
-                status = 1
-    return status
+            if perc_match > 90 :
+                return perc_match
+            elif perc_match >= 70 : 
+                count = count + 1
+                avg_perc_match += perc_match
+
+    avg_perc_match =  (avg_perc_match/count)         
+    return avg_perc_match   
+
+def add_corr_status(perc_match, discp = "", corr_ac = ""):      
+    status = 0
+    if perc_match != 0:
+        if 
+   
             
 for item in result.itertuples():
     cas = rake_object.run(item[7])
@@ -78,29 +86,29 @@ for item in result.itertuples():
     mdc_keyword_list = keyword_match(cas,keyword_list)
     mdc_keyword_list.extend(keyword_match(lru,keyword_list))
     mdc_keyword_list.extend(keyword_match(eq_desc,keyword_list))
-    mdc_keyword_list.extend(keyword_match(mdc_message,keyword_list))
-
+    
     if mdc_keyword_list:
-        status =  keyword_match_descrepancy(descrepancy,mdc_keyword_list)
-        print('status is ',status)
-        if status ==  1 :
-            status =  keyword_match_descrepancy(corrective_action,mdc_keyword_list)
-        else : 
-            print('match with eq_id')
+        perc_match =  keyword_match_pm_messages(descrepancy,mdc_keyword_list)
+        if perc_match >  90 :
+            # result.insert(loc=8, column='Status', value=status)
+            #logic for 2
+        else: 
+            perc_match =  keyword_match_pm_messages(descrepancy,mdc_message)
+            if perc_match != 0 :
+                # result.insert(loc=8, column='Status', value=status)
+                #logic for 2
+            else: 
+                perc_match =  keyword_match_pm_messages(corrective_action,mdc_keyword_list)
+                if perc_match >  90 :
+                    # result.insert(loc=8, column='Status', value=status)
+                    #logic for 2
+                else:
+                    perc_match =  keyword_match_pm_messages(descrepancy,mdc_message)
+                    if perc_match != 0 :
+                        # result.insert(loc=8, column='Status', value=status)
+                        #logic for 2
+                    else:
+                        add_corr_status(0)
     else:
+        # get keywords from lru and cas
         print("not found")
-
-    # status =  keyword_match_descrepancy(descrepancy,my_keyword)
-    print('status is ',status)
-    # if status ==  1 :
-    #     corrective_action = rake_object.run(item[11])
-    #     status =  keyword_match_descrepancy(corrective_action.my_keyword)
-    # else : 
-    #     print('match with eq_id')
-    
-    # result.insert(loc=8, column='Status', value=status)
-    
-    #df["CAS"].fillna("None", inplace = True)  
-
-    
-    
