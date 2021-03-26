@@ -32,6 +32,7 @@ def keyword_match(mdc_message,keyword_list):
             for k in keyword_list:
                 if "###" in k :
                     split_array = k.split("###")
+                    print(split_array)
                     for spr in split_array :
                         perc_match = fuzz.partial_ratio(spr.lower(), list_key[0])
                         if perc_match > 70:
