@@ -67,13 +67,18 @@ def keyword_match_pm_messages(pm_message,my_keyword):
     avg_perc_match =  (avg_perc_match/count)         
     return avg_perc_match   
 
-def add_corr_status(perc_match, discp = "", corr_ac = ""):      
+def add_corr_status(discp, corr_ac):      
     status = 0
-    if perc_match != 0:
-        if 
+    if "fom" or "further other maintainence" or "to get access" or "troubleshooting required" or "mci" in discp.lower() :
+        status = 2
+    elif "fom" or "further other maintainence" or "to get access" or "troubleshooting required" or "mci" in corr_ac.lower() :   
+        status = 2
+    else:
+        status = 1    
    
             
 for item in result.itertuples():
+    status = 0
     cas = rake_object.run(item[7])
     lru = rake_object.run(item[4])
     eq_desc = rake_object.run(item[6])
@@ -90,25 +95,30 @@ for item in result.itertuples():
     if mdc_keyword_list:
         perc_match =  keyword_match_pm_messages(descrepancy,mdc_keyword_list)
         if perc_match >  90 :
-            # result.insert(loc=8, column='Status', value=status)
-            #logic for 2
+            status = add_corr_status(item[12, item[13])
+            result.insert(loc=item[0], column='Status', value=status)
+            result.insert(loc=item[0], column='perc match', value=perc_match)
         else: 
             perc_match =  keyword_match_pm_messages(descrepancy,mdc_message)
             if perc_match != 0 :
-                # result.insert(loc=8, column='Status', value=status)
-                #logic for 2
+                status = add_corr_status(item[12, item[13])
+                result.insert(loc=item[0], column='Status', value=status)
+                result.insert(loc=item[0], column='perc match', value=perc_match)
             else: 
                 perc_match =  keyword_match_pm_messages(corrective_action,mdc_keyword_list)
                 if perc_match >  90 :
-                    # result.insert(loc=8, column='Status', value=status)
-                    #logic for 2
+                    status = add_corr_status(item[12, item[13])
+                    result.insert(loc=item[0], column='Status', value=status)
+                    result.insert(loc=item[0], column='perc match', value=perc_match)
                 else:
                     perc_match =  keyword_match_pm_messages(descrepancy,mdc_message)
                     if perc_match != 0 :
-                        # result.insert(loc=8, column='Status', value=status)
-                        #logic for 2
+                        status = add_corr_status(item[12, item[13])
+                        result.insert(loc=item[0], column='Status', value=status)
+                        result.insert(loc=item[0], column='perc match', value=perc_match)
                     else:
-                        add_corr_status(0)
+                        result.insert(loc=item[0], column='Status', value=1)
+                        result.insert(loc=item[0], column='perc match', value=perc_match)
     else:
         # get keywords from lru and cas
         print("not found")
