@@ -12,7 +12,7 @@ df["Value"].fillna(0, inplace = True)
 df.sort_values(['aircraftno', 'p_id', 'mdc_ID'], ascending=[True, True, True])
 df.loc[(df['ATA_Main'] != '33') & df['Value'] != 0]
 result = df[df['mdc_ID'].isin([28919])]
-result
+
 
 myfile = "words.txt"
 rake_object = RAKE.Rake(myfile)
@@ -46,6 +46,15 @@ def keyword_match(mdc_message,keyword_list):
         if ret_keyword : 
             break
    
+    return ret_keyword
+
+def get_cas_lrc_keyword(mdc_message):
+    ret_keyword = []
+    for key in mdc_message:
+        list_key = list(key) 
+        perc_match = 0
+        if not bool(re.match('[^\w]', list_key[0])):
+            ret_keyword.append(key)
     return ret_keyword
            
 
@@ -95,25 +104,25 @@ for item in result.itertuples():
     if mdc_keyword_list:
         perc_match =  keyword_match_pm_messages(descrepancy,mdc_keyword_list)
         if perc_match >  90 :
-            status = add_corr_status(item[12, item[13])
+            status = add_corr_status(item[12], item[13])
             result.insert(loc=item[0], column='Status', value=status)
             result.insert(loc=item[0], column='perc match', value=perc_match)
         else: 
             perc_match =  keyword_match_pm_messages(descrepancy,mdc_message)
             if perc_match != 0 :
-                status = add_corr_status(item[12, item[13])
+                status = add_corr_status(item[12], item[13])
                 result.insert(loc=item[0], column='Status', value=status)
                 result.insert(loc=item[0], column='perc match', value=perc_match)
             else: 
                 perc_match =  keyword_match_pm_messages(corrective_action,mdc_keyword_list)
                 if perc_match >  90 :
-                    status = add_corr_status(item[12, item[13])
+                    status = add_corr_status(item[12], item[13])
                     result.insert(loc=item[0], column='Status', value=status)
                     result.insert(loc=item[0], column='perc match', value=perc_match)
                 else:
                     perc_match =  keyword_match_pm_messages(corrective_action,mdc_message)
                     if perc_match != 0 :
-                        status = add_corr_status(item[12, item[13])
+                        status = add_corr_status(item[12], item[13])
                         result.insert(loc=item[0], column='Status', value=status)
                         result.insert(loc=item[0], column='perc match', value=perc_match)
                     else:
@@ -122,3 +131,7 @@ for item in result.itertuples():
     else:
         # get keywords from lru and cas
         print("not found")
+        cas_keyword_match = get_cas_lrc_keyword(cas)
+        lru_keyword_match = get_cas_lrc_keyword(lru)
+        print(cas_keyword_match)
+        print(lru_keyword_match)
