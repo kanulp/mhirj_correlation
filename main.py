@@ -111,7 +111,7 @@ for item in result.itertuples():
                     result.insert(loc=item[0], column='Status', value=status)
                     result.insert(loc=item[0], column='perc match', value=perc_match)
                 else:
-                    perc_match =  keyword_match_pm_messages(descrepancy,mdc_message)
+                    perc_match =  keyword_match_pm_messages(corrective_action,mdc_message)
                     if perc_match != 0 :
                         status = add_corr_status(item[12, item[13])
                         result.insert(loc=item[0], column='Status', value=status)
