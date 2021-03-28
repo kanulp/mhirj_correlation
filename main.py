@@ -13,7 +13,9 @@ df["CAS"].fillna("None", inplace = True)
 df["Value"].fillna(0, inplace = True)  
 df.sort_values(['aircraftno', 'p_id', 'mdc_ID'], ascending=[True, True, True])
 result = df.loc[(df['ATA_Main'] != '33') & df['Value'] != 0]
-result = df[df['mdc_ID'].isin([13503])]
+result = df[df['mdc_ID'].isin([1])]
+result.insert(loc=0, column='Status', value=1)
+result.insert(loc=1, column='perc match', value=0)
 
 
 myfile = "words.txt"
@@ -98,19 +100,20 @@ def add_corr_status(discp, corr_ac):
                           (' ' + 'mci' + ' ') in (' ' + corr_ac.lower() + ' ')):
         status = 2
     else:
-        status = 1   
+        status = 3   
     return status     
    
             
 for item in result.itertuples():
-    status = 0
+    status = 1
     cas = ''
+    perc_match = 0
     corrective_action = ''
     if not item[7] == 'None':
         cas = rake_object.run(item[7])
         if not cas:
             cas = get_keyword_without_rake(item[7])
-
+    print(item[1])
     lru = rake_object.run(item[4])
     if not lru:
         lru = get_keyword_without_rake(item[4])
@@ -136,7 +139,7 @@ for item in result.itertuples():
     if pm_full_corr_acc :
         corrective_action = rake_object.run(pm_full_corr_acc)
         if not corrective_action:
-            corrective_action = get_keyword_without_rake(corrective_action)
+            corrective_action = get_keyword_without_rake(pm_full_corr_acc)
 
     mdc_keyword_list = []
     if not item[7] == 'None':
@@ -145,46 +148,33 @@ for item in result.itertuples():
     mdc_keyword_list.extend(keyword_match(eq_desc,keyword_list))
     mdc_keyword_list = list(dict.fromkeys(mdc_keyword_list))
     
-    status_list =[]
-    perc_match_list = []
     if mdc_keyword_list:
         perc_match =  keyword_match_pm_messages(descrepancy,mdc_keyword_list)
         if perc_match >  90:
             status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-            status_list.append(status)
-            perc_match_list.append(perc_match)
-            # result.insert(loc=item[0], column='Status', value=status)
-            # result.insert(loc=item[0], column='perc match', value=perc_match)
+            result['Status'][item[0]]=status
+            result['perc match'][item[0]]=perc_match
         else: 
             perc_match =  keyword_match_pm_messages(descrepancy,list_mdc_message)
             if perc_match != 0 :
                 status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-                status_list.append(status)
-                perc_match_list.append(perc_match)
-                # result.insert(loc=item[0], column='Status', value=status)
-                # result.insert(loc=item[0], column='perc match', value=perc_match)
+                result['Status'][item[0]]=status
+                result['perc match'][item[0]]=perc_match
             else: 
-                print(item[1])
                 perc_match =  keyword_match_pm_messages(corrective_action,mdc_keyword_list)
                 if perc_match >  90 :
                     status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-                    status_list.append(status)
-                    perc_match_list.append(perc_match)
-                    # result.insert(loc=item[0], column='Status', value=status)
-                    # result.insert(loc=item[0], column='perc match', value=perc_match)
+                    result['Status'][item[0]]=status
+                    result['perc match'][item[0]]=perc_match
                 else:
                     perc_match =  keyword_match_pm_messages(corrective_action,list_mdc_message)
                     if perc_match != 0 :
                         status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-                        status_list.append(status)
-                        perc_match_list.append(perc_match)
-                        # result.insert(loc=item[0], column='Status', value=status)
-                        # result.insert(loc=item[0], column='perc match', value=perc_match)
+                        result['Status'][item[0]]=status
+                        result['perc match'][item[0]]=perc_match
                     else:
-                        status_list.append(status)
-                        perc_match_list.append(0)
-                        # result.insert(loc=item[0], column='Status', value=1)
-                        # result.insert(loc=item[0], column='perc match', value=perc_match)
+                        result['Status'][item[0]]=status
+                        result['perc match'][item[0]]=perc_match
     else:
         mdc_msg_keyword_list = []
         if not item[7] == 'None':
@@ -201,41 +191,29 @@ for item in result.itertuples():
 
         if perc_match >  90 :
             status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-            status_list.append(status)
-            perc_match_list.append(perc_match)
-            # result.insert(loc=item[0], column='Status', value=status)
-            # result.insert(loc=item[0], column='perc match', value=perc_match)
+            result['Status'][item[0]]=status
+            result['perc match'][item[0]]=perc_match
         else: 
             perc_match =  keyword_match_pm_messages(descrepancy,list_mdc_message)
             if perc_match != 0 :
                 status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-                status_list.append(status)
-                perc_match_list.append(perc_match)
-                # result.insert(loc=item[0], column='Status', value=status)
-                # result.insert(loc=item[0], column='perc match', value=perc_match)
+                result['Status'][item[0]]=status
+                result['perc match'][item[0]]=perc_match
             else: 
                 perc_match =  keyword_match_pm_messages(corrective_action,list_message)
                 if perc_match >  90 :
                     status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-                    status_list.append(status)
-                    perc_match_list.append(perc_match)
-                    # result.insert(loc=item[0], column='Status', value=status)
-                    # result.insert(loc=item[0], column='perc match', value=perc_match)
+                    result['Status'][item[0]]=status
+                    result['perc match'][item[0]]=perc_match
                 else:
                     perc_match =  keyword_match_pm_messages(corrective_action,list_mdc_message)
                     if perc_match != 0 :
                         status = add_corr_status(pm_full_desc, pm_full_corr_acc)
-                        status_list.append(status)
-                        perc_match_list.append(perc_match)
-                        # result.insert(loc=item[0], column='Status', value=status)
-                        # result.insert(loc=item[0], column='perc match', value=perc_match)
+                        result['Status'][item[0]]=status
+                        result['perc match'][item[0]]=perc_match
                     else:
-                        status_list.append(status)
-                        perc_match_list.append(0)
-                        # result.insert(loc=item[0], column='Status', value=1)
-                        # result.insert(loc=item[0], column='perc match', value=perc_match)
+                        result['Status'][item[0]]=status
+                        result['perc match'][item[0]]=perc_match
 
-result['Status'] = status_list
-result['Percentage Match'] = perc_match_list
 result.to_csv(r'G:\Capstone\mhirj_correlation\test.csv', index = False)
 print(datetime.datetime.now())
