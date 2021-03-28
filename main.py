@@ -13,7 +13,7 @@ df["CAS"].fillna("None", inplace = True)
 df["Value"].fillna(0, inplace = True)  
 df.sort_values(['aircraftno', 'p_id', 'mdc_ID'], ascending=[True, True, True])
 result = df.loc[(df['ATA_Main'] != '33') & df['Value'] != 0]
-result = df[df['mdc_ID'].isin([66860])]
+result = df[df['mdc_ID'].isin([13503])]
 
 
 myfile = "words.txt"
@@ -28,12 +28,13 @@ keyword_list = extract_keyword()
 
 def get_keyword_without_rake(str):
     ret_keyword = []
-    str = re.findall(r"[\w']+", str)
-    for key in str:
-        list_key = list(key) 
-        perc_match = 0
-        if not bool(re.match('[^\w]', list_key[0])):
-            ret_keyword.append(key)
+    if str:
+        str = re.findall(r"[\w']+", str)
+        for key in str:
+            list_key = list(key) 
+            perc_match = 0
+            if not bool(re.match('[^\w]', list_key[0])):
+                ret_keyword.append(key)
     return ret_keyword
 
 def keyword_match(mdc_message,keyword_list):
@@ -63,14 +64,14 @@ def keyword_match(mdc_message,keyword_list):
           
 
 def keyword_match_pm_messages(pm_message,my_keyword):
+    perc_match = 0
+    count=0
+    avg_perc_match = 0
+    print(pm_message)
     for key in pm_message:
-        list_key = list(key) 
-        perc_match = 0
-        count=0
-        avg_perc_match = 0
+        list_key = list(key)         
         if not bool(re.match('[^\w]', list_key[0])):
             for k in my_keyword :
-                print(k, ' ', list_key[0])
                 perc_match = fuzz.partial_ratio(k.lower(), list_key[0])
                 if perc_match > 90 :
                     return perc_match
@@ -79,7 +80,6 @@ def keyword_match_pm_messages(pm_message,my_keyword):
                     avg_perc_match += perc_match
                 else:
                     return 0     
-
     avg_perc_match =  (avg_perc_match/count)         
     return avg_perc_match   
 
@@ -105,6 +105,7 @@ def add_corr_status(discp, corr_ac):
 for item in result.itertuples():
     status = 0
     cas = ''
+    corrective_action = ''
     if not item[7] == 'None':
         cas = rake_object.run(item[7])
         if not cas:
@@ -132,9 +133,10 @@ for item in result.itertuples():
     if not descrepancy:
         descrepancy = get_keyword_without_rake(pm_full_desc)
     
-    corrective_action = rake_object.run(pm_full_corr_acc)
-    if not corrective_action:
-        corrective_action = get_keyword_without_rake(corrective_action)
+    if pm_full_corr_acc :
+        corrective_action = rake_object.run(pm_full_corr_acc)
+        if not corrective_action:
+            corrective_action = get_keyword_without_rake(corrective_action)
 
     mdc_keyword_list = []
     if not item[7] == 'None':
@@ -162,6 +164,7 @@ for item in result.itertuples():
                 # result.insert(loc=item[0], column='Status', value=status)
                 # result.insert(loc=item[0], column='perc match', value=perc_match)
             else: 
+                print(item[1])
                 perc_match =  keyword_match_pm_messages(corrective_action,mdc_keyword_list)
                 if perc_match >  90 :
                     status = add_corr_status(pm_full_desc, pm_full_corr_acc)
@@ -189,7 +192,12 @@ for item in result.itertuples():
         mdc_msg_keyword_list.extend(lru)
         mdc_msg_keyword_list.extend(eq_desc)
 
-        perc_match =  keyword_match_pm_messages(descrepancy,mdc_msg_keyword_list)
+        list_message = []
+        for lst in mdc_msg_keyword_list:    
+            list_message.append(lst[0])
+
+
+        perc_match =  keyword_match_pm_messages(descrepancy,list_message)
 
         if perc_match >  90 :
             status = add_corr_status(pm_full_desc, pm_full_corr_acc)
@@ -206,7 +214,7 @@ for item in result.itertuples():
                 # result.insert(loc=item[0], column='Status', value=status)
                 # result.insert(loc=item[0], column='perc match', value=perc_match)
             else: 
-                perc_match =  keyword_match_pm_messages(corrective_action,mdc_keyword_list)
+                perc_match =  keyword_match_pm_messages(corrective_action,list_message)
                 if perc_match >  90 :
                     status = add_corr_status(pm_full_desc, pm_full_corr_acc)
                     status_list.append(status)
