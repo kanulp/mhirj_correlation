@@ -6,7 +6,7 @@ import re
 import datetime
 
 print(datetime.datetime.now())
-df = pd.read_csv("corr_test_2.csv", usecols=['mdc_ID', 'aircraftno','ATA_Description','LRU','CAS','MDC_MESSAGE','EQ_DESCRIPTION','ATA_Main','ATA_Sub','Discrepancy','Corrective Action', 'p_id', 'Value'],
+df = pd.read_csv("corr_test_2.csv", usecols=['mdc_ID', 'aircraftno','ATA_Description','LRU','CAS','MDC_MESSAGE','EQ_DESCRIPTION','ATA_Main','ATA_Sub','Discrepancy','Corrective Action', 'p_id', 'Value','Operator','Model','Type','Serial_No','N_No','Date','Failure Flag','Maint Trans','Maintenance Cancellations','Maintenance Delays','Inspection','CampType','MRB','AC Total Hours','AC Total Cycles','Squawk Source','ATA','Station','ATA_Main','ATA_SUB'],
                  skip_blank_lines=True, na_filter=True, encoding= 'unicode_escape').dropna(how = 'all')
 pd.notnull(df["Value"])  
 df["CAS"].fillna("None", inplace = True)  
