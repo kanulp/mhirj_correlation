@@ -12,7 +12,7 @@ pd.notnull(df["Value"])
 df["CAS"].fillna("None", inplace = True)  
 df["Value"].fillna(0, inplace = True)  
 df.sort_values(['aircraftno', 'p_id', 'mdc_ID'], ascending=[True, True, True])
-result = df.loc[(df['ATA_Main'] != '33') & df['Value'] != 0]
+result = df.loc[(df['ATA_Main'] != '33')]
 result = df[df['mdc_ID'].isin([1])]
 result.insert(loc=0, column='Status', value=1)
 result.insert(loc=1, column='perc match', value=0)
