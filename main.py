@@ -6,16 +6,17 @@ import re
 import datetime
 
 print(datetime.datetime.now())
-df = pd.read_csv("corr_test_2.csv", usecols=['mdc_ID', 'aircraftno','ATA_Description','LRU','CAS','MDC_MESSAGE','EQ_DESCRIPTION','ATA_Main','ATA_Sub','Discrepancy','Corrective Action', 'p_id', 'Value','Operator','Model','Type','Serial_No','N_No','Date','Failure Flag','Maint Trans','Maintenance Cancellations','Maintenance Delays','Inspection','CampType','MRB','AC Total Hours','AC Total Cycles','Squawk Source','ATA','Station','ATA_Main','ATA_SUB'],
+df = pd.read_csv("corr_test_2.csv", low_memory = False, usecols=['mdc_ID', 'aircraftno','ATA_Description','LRU','CAS','MDC_MESSAGE','EQ_DESCRIPTION','ATA_Main','ATA_Sub','Discrepancy','Corrective Action', 'p_id', 'Value','Operator','Model','Type','Serial_No','N_No','Date','Failure Flag','Maint Trans','Maintenance Cancellations','Maintenance Delays','Inspection','CampType','MRB','AC Total Hours','AC Total Cycles','Squawk Source','ATA','Station','ATA_Main','ATA_SUB'],
                  skip_blank_lines=True, na_filter=True, encoding= 'unicode_escape').dropna(how = 'all')
 pd.notnull(df["Value"])  
 df["CAS"].fillna("None", inplace = True)  
 df["Value"].fillna(0, inplace = True)  
 df.sort_values(['aircraftno', 'p_id', 'mdc_ID'], ascending=[True, True, True])
-result = df.loc[(df['ATA_Main'] != '33') & df['Value'] != 0]
-result = df[df['mdc_ID'].isin([1])]
+result = df.loc[(df['ATA_Main'] != '33') ]
+# result = df[df['mdc_ID'].isin([1])]
 result.insert(loc=0, column='Status', value=1)
 result.insert(loc=1, column='perc match', value=0)
+#print(result)
 
 
 myfile = "words.txt"
@@ -69,20 +70,24 @@ def keyword_match_pm_messages(pm_message,my_keyword):
     perc_match = 0
     count=0
     avg_perc_match = 0
-    print(pm_message)
-    for key in pm_message:
-        list_key = list(key)         
-        if not bool(re.match('[^\w]', list_key[0])):
-            for k in my_keyword :
-                perc_match = fuzz.partial_ratio(k.lower(), list_key[0])
-                if perc_match > 90 :
-                    return perc_match
-                elif perc_match >= 70 : 
-                    count = count + 1
-                    avg_perc_match += perc_match
-                else:
-                    return 0     
-    avg_perc_match =  (avg_perc_match/count)         
+    #print(pm_message)
+    try : 
+        for key in pm_message:
+            list_key = list(key)         
+            if not bool(re.match('[^\w]', list_key[0])):
+                for k in my_keyword :
+                    perc_match = fuzz.partial_ratio(k.lower(), list_key[0])
+                    if perc_match > 90 :
+                        return perc_match
+                    elif perc_match >= 70 : 
+                        count = count + 1
+                        avg_perc_match += perc_match
+                    else:
+                        return 0     
+        avg_perc_match =  (avg_perc_match/count)
+    except : 
+        print(pm_message)
+        print('catch block')         
     return avg_perc_match   
 
 def add_corr_status(discp, corr_ac):      
@@ -109,28 +114,29 @@ for item in result.itertuples():
     cas = ''
     perc_match = 0
     corrective_action = ''
-    if not item[7] == 'None':
-        cas = rake_object.run(item[7])
+    if not item[9] == 'None':
+        cas = rake_object.run(item[9])
         if not cas:
-            cas = get_keyword_without_rake(item[7])
-    print(item[1])
-    lru = rake_object.run(item[4])
-    if not lru:
-        lru = get_keyword_without_rake(item[4])
+            cas = get_keyword_without_rake(item[9])
     
-    eq_desc = rake_object.run(item[6])
+    #print(item[27])            
+    lru = rake_object.run(item[6])
+    if not lru:
+        lru = get_keyword_without_rake(item[6])
+    
+    eq_desc = rake_object.run(item[8])
     if not eq_desc:
-        eq_desc = get_keyword_without_rake(item[6])
+        eq_desc = get_keyword_without_rake(item[8])
 
-    mdc_message = rake_object.run(item[5])
+    mdc_message = rake_object.run(item[7])
     list_mdc_message = []
     if not mdc_message:
-        mdc_message = get_keyword_without_rake(item[5])
+        mdc_message = get_keyword_without_rake(item[7])
     for mdc in mdc_message:    
         list_mdc_message.append(mdc[0])
     ## pm
-    pm_full_desc = item[12].replace('"','')
-    pm_full_corr_acc = item[13].replace('"','')
+    pm_full_desc = item[27].replace('"','')
+    pm_full_corr_acc = item[28].replace('"','')
 
     descrepancy = rake_object.run(pm_full_desc)
     if not descrepancy:
